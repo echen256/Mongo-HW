@@ -1,0 +1,139 @@
+<!Doctype HTML>
+
+
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <button id="startScrape">
+                CLICK ME TO START SCRAPE
+            </button>
+        </div>
+        <div class="row">
+            <div id="articleRoot" class="container">
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+    <script>
+
+        populate();
+        $("#startScrape").on("click", function () {
+            $.ajax({
+                url: "/scrape",
+                method: "GET"
+            }).then(function (res) {
+                populate();
+            });
+        });
+
+        function showComments() {
+            console.log("click");
+            var comments = $(this).parent().children(".commentsField");
+            var hidden = comments.attr("hidden");
+            console.log(hidden);
+            if (hidden) {
+                comments.show();
+            }
+            comments.attr("hidden", !hidden)
+        }
+
+        function writeNote(event) {
+            event.preventDefault();
+            var text = $($(this).children()[0]).val();
+            var data = $(this).parent().attr("data");
+      
+            $.ajax({
+                url: "/articles/" + data,
+                method: "POST",
+                data: {
+                    note: {
+                        body: text,
+                        title: "Title",
+                        articleId: data
+                    }
+                }
+            }).then(function (res) {
+              
+            })
+        }
+
+        function populateNotes(root, article) {
+            
+            var notes = article.notes;
+            root.append("<div class = commentHeader> Comments: </div> ")
+            for (var i = 0; i < notes.length; i++) {
+                var title = $("<div>");
+                var body = $("<div>");
+                var parent = $("<div>");
+                
+                parent.append(title);
+                parent.append(body);
+
+                title.text(notes[i].title);
+                body.text(notes[i].body)
+                root.append(parent);
+            }
+        }
+
+        function redirect() {
+            var url = $(this).attr(href);
+            location.href = url;
+        }
+
+        function populate() {
+            $.ajax({
+                url: "/articles",
+                method: "GET"
+            }).then(function (articles) {
+                $("#articleRoot").empty();
+                for (var i = 0; i < articles.length; i++) {
+                    var a = articles[i];
+
+                    var root = $("<div>");
+
+                    var div = $("<div>")
+                    div.addClass("article");
+                    var hyperLink = $("<a>")
+                    hyperLink.attr("href", a.link);
+                    hyperLink.text(a.title)
+                    div.append(hyperLink);
+
+                    root.attr("data", a._id);
+                    var summary = $("<div></div>");
+
+
+                    var commentsField = $('<form> Comments: <input type="text" size="500"><br> <input type="submit" value="Submit"></form>');
+                    commentsField.addClass("commentsField");
+
+                    populateNotes(commentsField, a);
+
+                    commentsField.hide();
+                    commentsField.attr("hidden", true);
+                    div.on("click", showComments);
+                    commentsField.on("submit", writeNote);
+
+                    root.append(div);
+                    root.append(commentsField);
+                    root.append(summary);
+                    $("#articleRoot").append(root);
+
+                }
+            });
+        }
+
+
+    </script>
+</body>
+
+</html>
