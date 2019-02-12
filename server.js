@@ -29,10 +29,18 @@ app.get("/scrape", function (req, res) {
     var $ = cheerio.load(response.data);
     $(".item-list li").each(function (i, element) {
 
+
+
+
+
       var article = $(this).children("article");
       var link = article.children("h2").children("a").attr('href');
       var title = article.children("h2").children("a").text();
       var body = article.children(".article__body").text();
+
+
+
+
 
       var existing = db.Article.find({
         title: title
